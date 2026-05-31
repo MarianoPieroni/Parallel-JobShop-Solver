@@ -6,6 +6,8 @@
 //para executar tem q ter 2 comandos
 // gcc -fopenmp jobshop_omp.c -o jobshop_omp.exe
 // .\jobshop_omp.exe gg03.jss gg03_paralelo.output 4
+// .\jobshop_omp.exe ft06.jss ft06_paralelo.output 4
+// .\jobshop_omp.exe teste.jss teste_paralelo.output 4
 
 
 void ler_ficheiro(const char *nome_ficheiro, JobShop *js) {
@@ -15,7 +17,7 @@ void ler_ficheiro(const char *nome_ficheiro, JobShop *js) {
         js->trabalhos[i].id_job = i;
         for (int j = 0; j < js->num_maquinas; j++) {
             fscanf(file, "%d %d", &js->trabalhos[i].operacoes[j].id_maquina, 
-                                  &js->trabalhos[i].operacoes[j].tempo_duracao);
+                    &js->trabalhos[i].operacoes[j].tempo_duracao);
             js->trabalhos[i].operacoes[j].tempo_inicio = -1;
         }
     }
@@ -96,16 +98,21 @@ int main(int argc, char *argv[]) {
 
     JobShop meu_jobshop;
     int num_threads = atoi(argv[3]);
+    double tempo_inicio = omp_get_wtime();
 
-    printf("A ler o ficheiro %s...\n", argv[1]);
+
     ler_ficheiro(argv[1], &meu_jobshop);
-
-    printf("A iniciar escalonamento com %d threads...\n", num_threads);
     int tempo_max = calcular_escalonamento_paralelo(&meu_jobshop, num_threads);
-    
-    printf("Tempo Maximo: %d\n", tempo_max);
+    double tempo_fim = omp_get_wtime();
+    double tempo_execucao = tempo_fim - tempo_inicio;
 
     gravar_resultado(argv[2], &meu_jobshop, tempo_max);
+
+    printf("escalonamento com %d threads\n", num_threads);
+    printf("Tempo Maximo: %d\n", tempo_max);
+    printf("Tempo de execucao: %f segundos\n", tempo_execucao);
+
+    
 
     return 0;
 }
