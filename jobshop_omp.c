@@ -51,7 +51,7 @@ int calcular_escalonamento_paralelo(JobShop *js, int num_threads) {
 
     omp_set_num_threads(num_threads);
 
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(static, 1)
     for (int i = 0; i < js->num_jobs; i++) {
         int tempo_atual_job = 0; 
 
@@ -96,23 +96,38 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    JobShop meu_jobshop;
+    const char *ficheiro_entrada = argv[1];
+    const char *ficheiro_saida = argv[2];
     int num_threads = atoi(argv[3]);
-    double tempo_inicio = omp_get_wtime();
 
+    int num_repeticoes = 10; // Conforme especificado na Parte C
+    double tempo_total_acumulado = 0.0;
+    int tempo_max = 0;
+    JobShop meu_jobshop;
 
-    ler_ficheiro(argv[1], &meu_jobshop);
-    int tempo_max = calcular_escalonamento_paralelo(&meu_jobshop, num_threads);
-    double tempo_fim = omp_get_wtime();
-    double tempo_execucao = tempo_fim - tempo_inicio;
+    printf("A executar a versao paralela com %d threads (%d vezes)...\n", num_threads, num_repeticoes);
 
-    gravar_resultado(argv[2], &meu_jobshop, tempo_max);
+    for (int i = 0; i < num_repeticoes; i++) {
+        ler_ficheiro(ficheiro_entrada, &meu_jobshop);
 
-    printf("escalonamento com %d threads\n", num_threads);
-    printf("Tempo Maximo: %d\n", tempo_max);
-    printf("Tempo de execucao: %f segundos\n", tempo_execucao);
+        //inicio da medição
+        double tempo_inicio = omp_get_wtime();
 
-    
+        tempo_max = calcular_escalonamento_paralelo(&meu_jobshop, num_threads);
 
+        double tempo_fim = omp_get_wtime();
+        //fim da medição
+
+        tempo_total_acumulado += (tempo_fim - tempo_inicio);
+    }
+
+    double tempo_medio_par = tempo_total_acumulado / num_repeticoes;
+
+    printf("\nRESULTADOS PARALELO\n");
+    printf("Threads: %d\n", num_threads);
+    printf("Tempo Maximo (Makespan): %d\n", tempo_max);
+    printf("Tempo Medio de Execucao: %f segundos\n", tempo_medio_par);
+
+    gravar_resultado(ficheiro_saida, &meu_jobshop, tempo_max);
     return 0;
 }
