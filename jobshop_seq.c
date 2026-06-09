@@ -31,6 +31,22 @@ int calcular_escalonamento(JobShop *js) {
     return tempo_global;
 }
 
+void gravar_resultado(const char *nome_ficheiro, JobShop *js, int makespan) {
+    FILE *file = fopen(nome_ficheiro, "w");
+    if (file == NULL) {
+        printf("Erro ao criar ficheiro de saida %s\n", nome_ficheiro);
+        exit(1);
+    }
+    fprintf(file, "%d\n", makespan);
+    for (int i = 0; i < js->num_jobs; i++) {
+        for (int j = 0; j < js->num_maquinas; j++) {
+            fprintf(file, "%d ", js->trabalhos[i].operacoes[j].tempo_inicio);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
+}
+
 int main(int argc, char *argv[]) {
   if (argc < 3) {
         printf("Uso: %s <entrada.jss> <saida.output>\n", argv[0]);
